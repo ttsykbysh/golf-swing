@@ -13,7 +13,7 @@ if (params.get("token") !== VALID_TOKEN) {
 // Constants (⑥ 推奨チューニング値)
 // ============================
 const MIN_SWING_THRESHOLD = 5.0;   // ★ 重力除外後の有効スイング閾値
-const REQUIRED_ACTIVE_FRAMES = 3;  // 連続フレーム数（ノイズ除去）
+const REQUIRED_ACTIVE_FRAMES = 2;  // 連続フレーム数（ノイズ除去）
 
 // ============================
 // State
