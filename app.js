@@ -10,10 +10,10 @@ if (params.get("token") !== VALID_TOKEN) {
 }
 
 // ============================
-// Constants (Swing Detection Tuning)
+// Constants
 // ============================
-const MIN_SWING_THRESHOLD = 5.0;   // 重力除外後の有効スイング閾値
-const REQUIRED_ACTIVE_FRAMES = 3;  // 連続フレーム数（ノイズ除去）
+const MIN_SWING_THRESHOLD = 5.0;
+const REQUIRED_ACTIVE_FRAMES = 3;
 
 // ============================
 // State
@@ -31,7 +31,10 @@ const startBtn = document.getElementById("startBtn");
 const resetBtn = document.getElementById("resetBtn");
 const results = document.getElementById("results");
 const finalResult = document.getElementById("finalResult");
+
 const swingSound = document.getElementById("swingSound");
+const announceSound = document.getElementById("announceSound");
+const applauseSound = document.getElementById("applauseSound");
 
 // ============================
 // Swing Measurement
@@ -42,13 +45,12 @@ startBtn.onclick = async () => {
     return;
   }
 
-  // iOS permission request
+  // iOS permission
   if (typeof DeviceMotionEvent?.requestPermission === "function") {
     const permission = await DeviceMotionEvent.requestPermission();
     if (permission !== "granted") return;
   }
 
-  // Reset measurement state
   peakAcceleration = 0;
   activeFrameCount = 0;
   swingDetected = false;
@@ -56,19 +58,17 @@ startBtn.onclick = async () => {
 
   window.addEventListener("devicemotion", handleMotion);
 
-  // 🔊 Play swing sound after 2 seconds (silent preparation time)
+  // 2 seconds silent → swing sound
   setTimeout(() => {
     swingSound.currentTime = 0;
     swingSound.play();
   }, 2000);
 
-  // End measurement window
   setTimeout(() => {
     listening = false;
     window.removeEventListener("devicemotion", handleMotion);
 
     let distance = 0;
-
     if (swingDetected) {
       distance = calculateDistance(peakAcceleration);
     }
@@ -89,26 +89,20 @@ startBtn.onclick = async () => {
 };
 
 // ============================
-// Motion Handling (Gravity Excluded)
+// Motion Handling
 // ============================
 function handleMotion(event) {
   if (!listening) return;
 
-  const a = event.acceleration; // 重力除外
+  const a = event.acceleration;
   if (!a) return;
 
-  const magnitude = Math.sqrt(
-    a.x * a.x +
-    a.y * a.y +
-    a.z * a.z
-  );
+  const magnitude = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
 
-  // Track peak acceleration
   if (magnitude > peakAcceleration) {
     peakAcceleration = magnitude;
   }
 
-  // Swing detection using consecutive frames
   if (magnitude >= MIN_SWING_THRESHOLD) {
     activeFrameCount++;
     if (activeFrameCount >= REQUIRED_ACTIVE_FRAMES) {
@@ -133,39 +127,41 @@ function calculateDistance(acc) {
 // ============================
 function evaluateResult() {
 
-  // Exclude 0-yard (no swing) records
   const validSwings = swings.filter(d => d > 0);
 
-  // If no valid swings at all
-  if (validSwings.length === 0) {
-    finalResult.innerHTML = `
-      <p>Average Distance: 0.0 yd</p>
-      <p>Stability Penalty: -0.0 yd</p>
-      <strong>Final Result: 0.0 yd</strong>
-    `;
-    return;
+  let average = 0;
+  let penalty = 0;
+  let finalDistance = 0;
+
+  if (validSwings.length > 0) {
+    average =
+      validSwings.reduce((sum, d) => sum + d, 0) / validSwings.length;
+
+    const variance =
+      validSwings.reduce((sum, d) => sum + Math.pow(d - average, 2), 0)
+      / validSwings.length;
+
+    penalty = Math.sqrt(variance) * 0.8;
+    finalDistance = Math.max(average - penalty, 0);
   }
-
-  // Average distance (valid swings only)
-  const average =
-    validSwings.reduce((sum, d) => sum + d, 0) / validSwings.length;
-
-  // Variance & standard deviation (valid swings only)
-  const variance =
-    validSwings.reduce((sum, d) => sum + Math.pow(d - average, 2), 0) / validSwings.length;
-
-  const stdDev = Math.sqrt(variance);
-
-  // Stability penalty
-  const penalty = stdDev * 0.8;
-
-  const finalDistance = Math.max(average - penalty, 0);
 
   finalResult.innerHTML = `
     <p>Average Distance: ${average.toFixed(1)} yd</p>
     <p>Stability Penalty: -${penalty.toFixed(1)} yd</p>
     <strong>Final Result: ${finalDistance.toFixed(1)} yd</strong>
   `;
+
+  // ============================
+  // 🔊 Final Result Sound Sequence
+  // ============================
+  announceSound.currentTime = 0;
+  applauseSound.currentTime = 0;
+
+  announceSound.play();
+
+  announceSound.onended = () => {
+    applauseSound.play();
+  };
 }
 
 // ============================
