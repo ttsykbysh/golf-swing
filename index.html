@@ -2,34 +2,55 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Golf Swing Simulation</title>
+
+  <!-- Browser / QR Title -->
+  <title>Golf Swing Competition hosted by IT & Digital Strategy Dept.</title>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Google Fonts : Caveat -->
+  <!-- Google Font : Caveat (handwritten style, iOS & Android compatible) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap"
+    rel="stylesheet"
+  >
 
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h1>Golf Swing Simulation</h1>
+  <!-- Title -->
+  <h1>
+    Golf Swing Competition<br>
+    hosted by<br>
+    IT & Digital Strategy Dept.
+  </h1>
 
-  <img src="golfer.png" alt="Golf Swing Illustration" class="golfer-image">
+  <!-- Illustration Image -->
+  <img
+    src="golfer.png"
+    alt="Golf Swing Illustration"
+    class="golfer-image"
+  >
 
+  <!-- Controls -->
   <div>
     <button id="startBtn">Start Swing</button>
     <button id="resetBtn">Reset</button>
   </div>
 
+  <!-- Swing Results -->
   <ul id="results"></ul>
 
+  <!-- Final Evaluation -->
   <div id="finalResult"></div>
 
-  <!-- Swing Sound -->
+  <!-- Swing Sound Effect -->
   <audio id="swingSound" src="swing.mp3" preload="auto"></audio>
 
+  <!-- App Logic -->
   <script src="app.js"></script>
 </body>
 </html>
