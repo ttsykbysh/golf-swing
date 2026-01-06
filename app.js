@@ -34,10 +34,6 @@ startBtn.onclick = async () => {
     return;
   }
 
-  // 🔊 Play swing sound
-  swingSound.currentTime = 0;
-  swingSound.play();
-
   // iOS permission
   if (typeof DeviceMotionEvent?.requestPermission === "function") {
     const permission = await DeviceMotionEvent.requestPermission();
@@ -48,6 +44,12 @@ startBtn.onclick = async () => {
   listening = true;
 
   window.addEventListener("devicemotion", handleMotion);
+
+  // 🔊 効果音を2秒後に再生
+  setTimeout(() => {
+    swingSound.currentTime = 0;
+    swingSound.play();
+  }, 2000);
 
   setTimeout(() => {
     listening = false;
