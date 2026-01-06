@@ -1,50 +1,59 @@
 body {
   font-family: "Caveat", cursive, sans-serif;
   text-align: center;
-  padding: 20px;
-  background-color: #000;
-  color: #fff;
+  padding: 10px;
+  margin: 0;
+  background-color: #1e6b3a;   /* 芝生グリーン */
+  color: #ffffff;
 }
 
 h1 {
-  font-size: 42px;
-  margin-bottom: 10px;
+  font-size: 34px;
+  margin: 6px 0 4px 0;
+}
+
+.golfer-image {
+  width: 170px;
+  max-width: 70%;
+  margin: 6px auto;
+  display: block;
 }
 
 button {
   font-family: "Caveat", cursive, sans-serif;
-  font-size: 26px;
-  padding: 10px 30px;
-  margin: 10px;
+  font-size: 22px;
+  padding: 6px 18px;
+  margin: 4px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
+/* Start Swing：芝生の明るいグリーン */
 #startBtn {
-  background-color: #4CAF50;
-  color: #fff;
+  background-color: #6fcf97;
+  color: #0b3d24;
 }
 
+/* Reset：サンド・土イメージ */
 #resetBtn {
-  background-color: #f44336;
-  color: #fff;
-}
-
-.golfer-image {
-  width: 220px;
-  max-width: 80%;
-  margin: 20px auto;
-  display: block;
+  background-color: #c49a6c;
+  color: #3a240f;
 }
 
 #results {
   list-style: none;
   padding: 0;
-  font-size: 24px;
+  margin: 6px 0;
+  font-size: 20px;
+}
+
+#results li {
+  margin: 2px 0;
 }
 
 #finalResult {
-  margin-top: 20px;
-  font-size: 28px;
+  margin-top: 6px;
+  font-size: 22px;
+  line-height: 1.2;
 }
