@@ -3,15 +3,24 @@ body {
   text-align: center;
   padding: 10px;
   margin: 0;
-  background-color: #1e6b3a;   /* 芝生グリーン */
+  background-color: #1e6b3a; /* 芝生グリーン */
   color: #ffffff;
 }
 
+/* Title */
 h1 {
   font-size: 34px;
   margin: 6px 0 4px 0;
+  line-height: 1.2;
 }
 
+/* Hosted by text (slightly smaller) */
+.hosted-by {
+  font-size: 0.75em;
+  opacity: 0.9;
+}
+
+/* Illustration */
 .golfer-image {
   width: 170px;
   max-width: 70%;
@@ -19,6 +28,7 @@ h1 {
   display: block;
 }
 
+/* Buttons */
 button {
   font-family: "Caveat", cursive, sans-serif;
   font-size: 22px;
@@ -39,6 +49,7 @@ button {
   color: #3a240f;
 }
 
+/* Swing results list */
 #results {
   list-style: none;
   padding: 0;
@@ -50,8 +61,14 @@ button {
   margin: 2px 0;
 }
 
+/* Final result */
 #finalResult {
   margin-top: 6px;
   font-size: 22px;
   line-height: 1.2;
+}
+
+/* Highlight Final Result in Yellow */
+#finalResult strong {
+  color: #ffd700; /* Gold / Yellow */
 }
