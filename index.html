@@ -1,24 +1,30 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ゴルフスイングシミュレーター</title>
+  <title>Golf Swing Simulation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Fonts : Caveat -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>🏌️ ゴルフスイングシミュレーター</h1>
+  <h1>Golf Swing Simulation</h1>
 
-<div id="auth-error" class="hidden">❌ 認証エラー</div>
+  <img src="golfer.png" alt="Golf Swing Illustration" class="golfer-image">
 
-<button id="startBtn">スイング開始</button>
-<button id="resetBtn">リセット</button>
+  <button id="startBtn">Start Swing</button>
+  <button id="resetBtn">Reset</button>
 
-<ul id="results"></ul>
+  <ul id="results"></ul>
 
-<div id="finalResult"></div>
+  <div id="finalResult"></div>
 
-<script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
