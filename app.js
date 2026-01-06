@@ -23,6 +23,7 @@ const startBtn = document.getElementById("startBtn");
 const resetBtn = document.getElementById("resetBtn");
 const results = document.getElementById("results");
 const finalResult = document.getElementById("finalResult");
+const swingSound = document.getElementById("swingSound");
 
 // ============================
 // Swing Measurement
@@ -33,6 +34,11 @@ startBtn.onclick = async () => {
     return;
   }
 
+  // 🔊 Play swing sound
+  swingSound.currentTime = 0;
+  swingSound.play();
+
+  // iOS permission
   if (typeof DeviceMotionEvent?.requestPermission === "function") {
     const permission = await DeviceMotionEvent.requestPermission();
     if (permission !== "granted") return;
@@ -62,7 +68,9 @@ function handleMotion(event) {
   if (!listening) return;
 
   const a = event.accelerationIncludingGravity;
-  const magnitude = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+  const magnitude = Math.sqrt(
+    a.x * a.x + a.y * a.y + a.z * a.z
+  );
 
   if (magnitude > peakAcceleration) {
     peakAcceleration = magnitude;
@@ -93,11 +101,9 @@ function evaluateResult() {
   const finalDistance = Math.max(average - penalty, 0);
 
   finalResult.innerHTML = `
-    <div>
-      <p>Average Distance: ${average.toFixed(1)} yd</p>
-      <p>Stability Penalty: -${penalty.toFixed(1)} yd</p>
-      <strong>Final Result: ${finalDistance.toFixed(1)} yd</strong>
-    </div>
+    <p>Average Distance: ${average.toFixed(1)} yd</p>
+    <p>Stability Penalty: -${penalty.toFixed(1)} yd</p>
+    <strong>Final Result: ${finalDistance.toFixed(1)} yd</strong>
   `;
 }
 
