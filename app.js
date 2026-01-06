@@ -10,10 +10,10 @@ if (params.get("token") !== VALID_TOKEN) {
 }
 
 // ============================
-// Constants (⑥ 推奨チューニング値)
+// Constants (Swing Detection Tuning)
 // ============================
-const MIN_SWING_THRESHOLD = 5.0;   // ★ 重力除外後の有効スイング閾値
-const REQUIRED_ACTIVE_FRAMES = 2;  // 連続フレーム数（ノイズ除去）
+const MIN_SWING_THRESHOLD = 5.0;   // 重力除外後の有効スイング閾値
+const REQUIRED_ACTIVE_FRAMES = 3;  // 連続フレーム数（ノイズ除去）
 
 // ============================
 // State
@@ -42,13 +42,13 @@ startBtn.onclick = async () => {
     return;
   }
 
-  // iOS permission
+  // iOS permission request
   if (typeof DeviceMotionEvent?.requestPermission === "function") {
     const permission = await DeviceMotionEvent.requestPermission();
     if (permission !== "granted") return;
   }
 
-  // Reset state
+  // Reset measurement state
   peakAcceleration = 0;
   activeFrameCount = 0;
   swingDetected = false;
@@ -56,13 +56,13 @@ startBtn.onclick = async () => {
 
   window.addEventListener("devicemotion", handleMotion);
 
-  // 🔊 Play swing sound after 2 seconds (無音時間)
+  // 🔊 Play swing sound after 2 seconds (silent preparation time)
   setTimeout(() => {
     swingSound.currentTime = 0;
     swingSound.play();
   }, 2000);
 
-  // Measurement end
+  // End measurement window
   setTimeout(() => {
     listening = false;
     window.removeEventListener("devicemotion", handleMotion);
@@ -82,17 +82,19 @@ startBtn.onclick = async () => {
 
     results.appendChild(li);
 
-    if (swings.length === 3) evaluateResult();
+    if (swings.length === 3) {
+      evaluateResult();
+    }
   }, 1200);
 };
 
 // ============================
-// Motion Handling (重力除外が最重要)
+// Motion Handling (Gravity Excluded)
 // ============================
 function handleMotion(event) {
   if (!listening) return;
 
-  const a = event.acceleration; // ★ 重力を除外
+  const a = event.acceleration; // 重力除外
   if (!a) return;
 
   const magnitude = Math.sqrt(
@@ -101,12 +103,12 @@ function handleMotion(event) {
     a.z * a.z
   );
 
-  // Peak update
+  // Track peak acceleration
   if (magnitude > peakAcceleration) {
     peakAcceleration = magnitude;
   }
 
-  // Swing detection
+  // Swing detection using consecutive frames
   if (magnitude >= MIN_SWING_THRESHOLD) {
     activeFrameCount++;
     if (activeFrameCount >= REQUIRED_ACTIVE_FRAMES) {
@@ -130,14 +132,33 @@ function calculateDistance(acc) {
 // Final Evaluation
 // ============================
 function evaluateResult() {
-  const average =
-    swings.reduce((sum, d) => sum + d, 0) / swings.length;
 
+  // Exclude 0-yard (no swing) records
+  const validSwings = swings.filter(d => d > 0);
+
+  // If no valid swings at all
+  if (validSwings.length === 0) {
+    finalResult.innerHTML = `
+      <p>Average Distance: 0.0 yd</p>
+      <p>Stability Penalty: -0.0 yd</p>
+      <strong>Final Result: 0.0 yd</strong>
+    `;
+    return;
+  }
+
+  // Average distance (valid swings only)
+  const average =
+    validSwings.reduce((sum, d) => sum + d, 0) / validSwings.length;
+
+  // Variance & standard deviation (valid swings only)
   const variance =
-    swings.reduce((sum, d) => sum + Math.pow(d - average, 2), 0) / swings.length;
+    validSwings.reduce((sum, d) => sum + Math.pow(d - average, 2), 0) / validSwings.length;
 
   const stdDev = Math.sqrt(variance);
+
+  // Stability penalty
   const penalty = stdDev * 0.8;
+
   const finalDistance = Math.max(average - penalty, 0);
 
   finalResult.innerHTML = `
@@ -155,3 +176,4 @@ resetBtn.onclick = () => {
   results.innerHTML = "";
   finalResult.innerHTML = "";
 };
+
