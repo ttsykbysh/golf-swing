@@ -29,13 +29,11 @@ button {
   cursor: pointer;
 }
 
-/* Start Swing：芝生の明るいグリーン */
 #startBtn {
   background-color: #6fcf97;
   color: #0b3d24;
 }
 
-/* Reset：サンド・土イメージ */
 #resetBtn {
   background-color: #c49a6c;
   color: #3a240f;
