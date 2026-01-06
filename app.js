@@ -10,11 +10,19 @@ if (params.get("token") !== VALID_TOKEN) {
 }
 
 // ============================
+// Constants
+// ============================
+const MIN_SWING_THRESHOLD = 8.0;   // ★ これが最重要
+const REQUIRED_ACTIVE_FRAMES = 3;  // 連続判定（ノイズ除去）
+
+// ============================
 // State
 // ============================
 let swings = [];
 let listening = false;
 let peakAcceleration = 0;
+let activeFrameCount = 0;
+let swingDetected = false;
 
 // ============================
 // Elements
@@ -40,26 +48,38 @@ startBtn.onclick = async () => {
     if (permission !== "granted") return;
   }
 
+  // reset state
   peakAcceleration = 0;
+  activeFrameCount = 0;
+  swingDetected = false;
   listening = true;
 
   window.addEventListener("devicemotion", handleMotion);
 
-  // 🔊 効果音を2秒後に再生
+  // 🔊 効果音（2秒後）
   setTimeout(() => {
     swingSound.currentTime = 0;
     swingSound.play();
   }, 2000);
 
+  // 計測終了
   setTimeout(() => {
     listening = false;
     window.removeEventListener("devicemotion", handleMotion);
 
-    const distance = calculateDistance(peakAcceleration);
+    let distance = 0;
+
+    if (swingDetected) {
+      distance = calculateDistance(peakAcceleration);
+    }
+
     swings.push(distance);
 
     const li = document.createElement("li");
-    li.textContent = `Swing ${swings.length}: ${distance.toFixed(1)} yd`;
+    li.textContent = swingDetected
+      ? `Swing ${swings.length}: ${distance.toFixed(1)} yd`
+      : `Swing ${swings.length}: No Swing (0 yd)`;
+
     results.appendChild(li);
 
     if (swings.length === 3) evaluateResult();
@@ -74,8 +94,19 @@ function handleMotion(event) {
     a.x * a.x + a.y * a.y + a.z * a.z
   );
 
+  // ピーク更新
   if (magnitude > peakAcceleration) {
     peakAcceleration = magnitude;
+  }
+
+  // ★ 有効スイング判定
+  if (magnitude >= MIN_SWING_THRESHOLD) {
+    activeFrameCount++;
+    if (activeFrameCount >= REQUIRED_ACTIVE_FRAMES) {
+      swingDetected = true;
+    }
+  } else {
+    activeFrameCount = 0;
   }
 }
 
