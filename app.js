@@ -10,10 +10,10 @@ if (params.get("token") !== VALID_TOKEN) {
 }
 
 // ============================
-// Constants
+// Constants (⑥ 推奨チューニング値)
 // ============================
-const MIN_SWING_THRESHOLD = 8.0;   // ★ これが最重要
-const REQUIRED_ACTIVE_FRAMES = 3;  // 連続判定（ノイズ除去）
+const MIN_SWING_THRESHOLD = 8.5;   // ★ 重力除外後の有効スイング閾値
+const REQUIRED_ACTIVE_FRAMES = 3;  // 連続フレーム数（ノイズ除去）
 
 // ============================
 // State
@@ -48,7 +48,7 @@ startBtn.onclick = async () => {
     if (permission !== "granted") return;
   }
 
-  // reset state
+  // Reset state
   peakAcceleration = 0;
   activeFrameCount = 0;
   swingDetected = false;
@@ -56,13 +56,13 @@ startBtn.onclick = async () => {
 
   window.addEventListener("devicemotion", handleMotion);
 
-  // 🔊 効果音（2秒後）
+  // 🔊 Play swing sound after 2 seconds (無音時間)
   setTimeout(() => {
     swingSound.currentTime = 0;
     swingSound.play();
   }, 2000);
 
-  // 計測終了
+  // Measurement end
   setTimeout(() => {
     listening = false;
     window.removeEventListener("devicemotion", handleMotion);
@@ -86,20 +86,27 @@ startBtn.onclick = async () => {
   }, 1200);
 };
 
+// ============================
+// Motion Handling (重力除外が最重要)
+// ============================
 function handleMotion(event) {
   if (!listening) return;
 
-  const a = event.accelerationIncludingGravity;
+  const a = event.acceleration; // ★ 重力を除外
+  if (!a) return;
+
   const magnitude = Math.sqrt(
-    a.x * a.x + a.y * a.y + a.z * a.z
+    a.x * a.x +
+    a.y * a.y +
+    a.z * a.z
   );
 
-  // ピーク更新
+  // Peak update
   if (magnitude > peakAcceleration) {
     peakAcceleration = magnitude;
   }
 
-  // ★ 有効スイング判定
+  // Swing detection
   if (magnitude >= MIN_SWING_THRESHOLD) {
     activeFrameCount++;
     if (activeFrameCount >= REQUIRED_ACTIVE_FRAMES) {
