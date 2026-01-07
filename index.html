@@ -2,13 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <!-- Browser / QR Title -->
   <title>Golf Swing Competition hosted by IT & Digital Strategy Dept.</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Google Font : Caveat (handwritten style, iOS & Android compatible) -->
+  <!-- Google Font : Caveat -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -16,12 +13,10 @@
     rel="stylesheet"
   >
 
-  <!-- Styles -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- Title -->
   <h1>
     Golf Swing Competition<br>
     <span class="hosted-by">
@@ -30,31 +25,31 @@
     </span>
   </h1>
 
-  <!-- Illustration Image -->
-  <img
-    src="golfer.png"
-    alt="Golf Swing Illustration"
-    class="golfer-image"
-  >
+  <img src="golfer.png" alt="Golf Swing Illustration" class="golfer-image">
+
+  <!-- Rules Audio Button -->
+  <button id="rulesBtn" class="rules-btn">
+    Rules of the Competition<br>
+    <span class="rules-sub">30-second audio briefing</span>
+  </button>
 
   <!-- Controls -->
-  <div>
+  <div class="controls">
     <button id="startBtn">Start Swing</button>
     <button id="resetBtn">Reset</button>
   </div>
 
-  <!-- Swing Results -->
+  <!-- Results -->
   <ul id="results"></ul>
-
-  <!-- Final Evaluation -->
   <div id="finalResult"></div>
 
-  <!-- Audio Effects -->
+  <!-- Audio -->
   <audio id="swingSound" src="swing.mp3" preload="auto"></audio>
   <audio id="announceSound" src="Announce.mp3" preload="auto"></audio>
   <audio id="applauseSound" src="applause.mp3" preload="auto"></audio>
+  <audio id="rulesSound" src="LetsGetStarted.mp3" preload="auto"></audio>
 
-  <!-- App Logic -->
   <script src="app.js"></script>
 </body>
 </html>
+
