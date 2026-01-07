@@ -23,6 +23,7 @@ let listening = false;
 let peakAcceleration = 0;
 let activeFrameCount = 0;
 let swingDetected = false;
+let silentMode = false;
 
 // ============================
 // Elements
@@ -30,6 +31,7 @@ let swingDetected = false;
 const startBtn = document.getElementById("startBtn");
 const resetBtn = document.getElementById("resetBtn");
 const rulesBtn = document.getElementById("rulesBtn");
+const silentBtn = document.getElementById("silentBtn");
 
 const results = document.getElementById("results");
 const finalResult = document.getElementById("finalResult");
@@ -39,13 +41,39 @@ const rulesSound = document.getElementById("rulesSound");
 const drumRollSound = document.getElementById("drumRollSound");
 const announceSound = document.getElementById("announceSound");
 const thankYouSound = document.getElementById("thankYouSound");
+const silentOnSound = document.getElementById("silentOnSound");
+const silentOffSound = document.getElementById("silentOffSound");
+
+// ============================
+// Utility
+// ============================
+function playSound(audio) {
+  if (silentMode) return;
+  audio.currentTime = 0;
+  audio.play();
+}
+
+// ============================
+// Silent Mode Toggle
+// ============================
+silentBtn.onclick = () => {
+  silentMode = !silentMode;
+  silentBtn.classList.toggle("active", silentMode);
+
+  if (silentMode) {
+    silentOnSound.currentTime = 0;
+    silentOnSound.play();
+  } else {
+    silentOffSound.currentTime = 0;
+    silentOffSound.play();
+  }
+};
 
 // ============================
 // Rules Audio
 // ============================
 rulesBtn.onclick = () => {
-  rulesSound.currentTime = 0;
-  rulesSound.play();
+  playSound(rulesSound);
 };
 
 // ============================
@@ -54,13 +82,11 @@ rulesBtn.onclick = () => {
 startBtn.onclick = async () => {
   if (swings.length >= 3) return;
 
-  // iOS permission
   if (typeof DeviceMotionEvent?.requestPermission === "function") {
     const permission = await DeviceMotionEvent.requestPermission();
     if (permission !== "granted") return;
   }
 
-  // Reset measurement state
   peakAcceleration = 0;
   activeFrameCount = 0;
   swingDetected = false;
@@ -68,13 +94,10 @@ startBtn.onclick = async () => {
 
   window.addEventListener("devicemotion", handleMotion);
 
-  // 2 seconds silent → swing sound
   setTimeout(() => {
-    swingSound.currentTime = 0;
-    swingSound.play();
+    playSound(swingSound);
   }, 2000);
 
-  // Measurement window
   setTimeout(() => {
     listening = false;
     window.removeEventListener("devicemotion", handleMotion);
@@ -104,19 +127,12 @@ startBtn.onclick = async () => {
 // ============================
 function handleMotion(event) {
   if (!listening) return;
-
   const a = event.acceleration;
   if (!a) return;
 
-  const magnitude = Math.sqrt(
-    a.x * a.x +
-    a.y * a.y +
-    a.z * a.z
-  );
+  const magnitude = Math.sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
 
-  if (magnitude > peakAcceleration) {
-    peakAcceleration = magnitude;
-  }
+  if (magnitude > peakAcceleration) peakAcceleration = magnitude;
 
   if (magnitude >= MIN_SWING_THRESHOLD) {
     activeFrameCount++;
@@ -133,66 +149,42 @@ function handleMotion(event) {
 // ============================
 function calculateDistance(acc) {
   const k = 0.045;
-  const d = 300 * (1 - Math.exp(-k * acc));
-  return Math.min(d, 300);
+  return Math.min(300 * (1 - Math.exp(-k * acc)), 300);
 }
 
 // ============================
 // Final Evaluation
-// Silent 2s → DrumRoll → Announce → Display → ThankYou
 // ============================
 function evaluateResultWithSounds() {
 
-  // ① 2 seconds silent before DrumRoll
   setTimeout(() => {
-
-    // ② Drum Roll
-    drumRollSound.currentTime = 0;
-    drumRollSound.play();
+    playSound(drumRollSound);
 
     drumRollSound.onended = () => {
-
-      // ③ Announce
-      announceSound.currentTime = 0;
-      announceSound.play();
+      playSound(announceSound);
 
       announceSound.onended = () => {
 
-        // ④ Calculate result (exclude 0 yd)
-        const validSwings = swings.filter(d => d > 0);
+        const valid = swings.filter(d => d > 0);
+        let avg = 0, penalty = 0, finalD = 0;
 
-        let average = 0;
-        let penalty = 0;
-        let finalDistance = 0;
-
-        if (validSwings.length > 0) {
-          average =
-            validSwings.reduce((s, d) => s + d, 0) /
-            validSwings.length;
-
+        if (valid.length > 0) {
+          avg = valid.reduce((s, d) => s + d, 0) / valid.length;
           const variance =
-            validSwings.reduce(
-              (s, d) => s + Math.pow(d - average, 2),
-              0
-            ) / validSwings.length;
-
+            valid.reduce((s, d) => s + Math.pow(d - avg, 2), 0) / valid.length;
           penalty = Math.sqrt(variance) * 0.8;
-          finalDistance = Math.max(average - penalty, 0);
+          finalD = Math.max(avg - penalty, 0);
         }
 
-        // ⑤ Display result
         finalResult.innerHTML = `
-          <p>Average Distance: ${average.toFixed(1)} yd</p>
+          <p>Average Distance: ${avg.toFixed(1)} yd</p>
           <p>Stability Penalty: -${penalty.toFixed(1)} yd</p>
-          <strong>Final Result: ${finalDistance.toFixed(1)} yd</strong>
+          <strong>Final Result: ${finalD.toFixed(1)} yd</strong>
         `;
 
-        // ⑥ Thank You
-        thankYouSound.currentTime = 0;
-        thankYouSound.play();
+        playSound(thankYouSound);
       };
     };
-
   }, 2000);
 }
 
@@ -200,6 +192,15 @@ function evaluateResultWithSounds() {
 // Reset
 // ============================
 resetBtn.onclick = () => {
+
+  // Silent Mode解除
+  if (silentMode) {
+    silentMode = false;
+    silentBtn.classList.remove("active");
+    silentOffSound.currentTime = 0;
+    silentOffSound.play();
+  }
+
   swings = [];
   results.innerHTML = "";
   finalResult.innerHTML = "";
