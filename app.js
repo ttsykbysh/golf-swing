@@ -10,10 +10,10 @@ if (params.get("token") !== VALID_TOKEN) {
 }
 
 // ============================
-// Constants (Swing Detection Tuning)
+// Constants
 // ============================
-const MIN_SWING_THRESHOLD = 8.5;   // 重力除外後の有効スイング閾値
-const REQUIRED_ACTIVE_FRAMES = 3;  // 連続フレーム数（ノイズ除去）
+const MIN_SWING_THRESHOLD = 8.5;
+const REQUIRED_ACTIVE_FRAMES = 3;
 
 // ============================
 // State
@@ -29,29 +29,35 @@ let swingDetected = false;
 // ============================
 const startBtn = document.getElementById("startBtn");
 const resetBtn = document.getElementById("resetBtn");
+const rulesBtn = document.getElementById("rulesBtn");
+
 const results = document.getElementById("results");
 const finalResult = document.getElementById("finalResult");
 
 const swingSound = document.getElementById("swingSound");
 const announceSound = document.getElementById("announceSound");
 const applauseSound = document.getElementById("applauseSound");
+const rulesSound = document.getElementById("rulesSound");
+
+// ============================
+// Rules Audio
+// ============================
+rulesBtn.onclick = () => {
+  rulesSound.currentTime = 0;
+  rulesSound.play();
+};
 
 // ============================
 // Swing Measurement
 // ============================
 startBtn.onclick = async () => {
-  if (swings.length >= 3) {
-    alert("3 swings already completed");
-    return;
-  }
+  if (swings.length >= 3) return;
 
-  // iOS permission request
   if (typeof DeviceMotionEvent?.requestPermission === "function") {
     const permission = await DeviceMotionEvent.requestPermission();
     if (permission !== "granted") return;
   }
 
-  // Reset measurement state
   peakAcceleration = 0;
   activeFrameCount = 0;
   swingDetected = false;
@@ -65,7 +71,7 @@ startBtn.onclick = async () => {
     swingSound.play();
   }, 2000);
 
-  // End measurement window
+  // Measurement window
   setTimeout(() => {
     listening = false;
     window.removeEventListener("devicemotion", handleMotion);
@@ -81,7 +87,6 @@ startBtn.onclick = async () => {
     li.textContent = swingDetected
       ? `Swing ${swings.length}: ${distance.toFixed(1)} yd`
       : `Swing ${swings.length}: No Swing (0 yd)`;
-
     results.appendChild(li);
 
     if (swings.length === 3) {
@@ -91,26 +96,19 @@ startBtn.onclick = async () => {
 };
 
 // ============================
-// Motion Handling (Gravity Excluded)
+// Motion Handling
 // ============================
 function handleMotion(event) {
   if (!listening) return;
-
-  const a = event.acceleration; // 重力除外
+  const a = event.acceleration;
   if (!a) return;
 
-  const magnitude = Math.sqrt(
-    a.x * a.x +
-    a.y * a.y +
-    a.z * a.z
-  );
+  const magnitude = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
 
-  // Track peak acceleration
   if (magnitude > peakAcceleration) {
     peakAcceleration = magnitude;
   }
 
-  // Swing detection using consecutive frames
   if (magnitude >= MIN_SWING_THRESHOLD) {
     activeFrameCount++;
     if (activeFrameCount >= REQUIRED_ACTIVE_FRAMES) {
@@ -126,16 +124,14 @@ function handleMotion(event) {
 // ============================
 function calculateDistance(acc) {
   const k = 0.045;
-  const distance = 300 * (1 - Math.exp(-k * acc));
-  return Math.min(distance, 300);
+  const d = 300 * (1 - Math.exp(-k * acc));
+  return Math.min(d, 300);
 }
 
 // ============================
 // Final Evaluation
 // ============================
 function evaluateResult() {
-
-  // Exclude 0-yard (no swing) records
   const validSwings = swings.filter(d => d > 0);
 
   let average = 0;
@@ -143,38 +139,28 @@ function evaluateResult() {
   let finalDistance = 0;
 
   if (validSwings.length > 0) {
-    // Average distance
-    average =
-      validSwings.reduce((sum, d) => sum + d, 0) / validSwings.length;
+    average = validSwings.reduce((s, d) => s + d, 0) / validSwings.length;
 
-    // Variance & standard deviation
     const variance =
-      validSwings.reduce(
-        (sum, d) => sum + Math.pow(d - average, 2),
-        0
-      ) / validSwings.length;
+      validSwings.reduce((s, d) => s + Math.pow(d - average, 2), 0) /
+      validSwings.length;
 
     penalty = Math.sqrt(variance) * 0.8;
     finalDistance = Math.max(average - penalty, 0);
   }
 
-  // Display result
   finalResult.innerHTML = `
     <p>Average Distance: ${average.toFixed(1)} yd</p>
     <p>Stability Penalty: -${penalty.toFixed(1)} yd</p>
     <strong>Final Result: ${finalDistance.toFixed(1)} yd</strong>
   `;
 
-  // ============================
-  // 🔊 Final Result Sound Sequence
-  // (3 seconds wait → Announce → Applause)
-  // ============================
+  // 3 sec delay → announce → applause
   announceSound.currentTime = 0;
   applauseSound.currentTime = 0;
 
   setTimeout(() => {
     announceSound.play();
-
     announceSound.onended = () => {
       applauseSound.play();
     };
@@ -189,3 +175,4 @@ resetBtn.onclick = () => {
   results.innerHTML = "";
   finalResult.innerHTML = "";
 };
+
