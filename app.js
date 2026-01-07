@@ -35,9 +35,10 @@ const results = document.getElementById("results");
 const finalResult = document.getElementById("finalResult");
 
 const swingSound = document.getElementById("swingSound");
-const announceSound = document.getElementById("announceSound");
-const applauseSound = document.getElementById("applauseSound");
 const rulesSound = document.getElementById("rulesSound");
+const drumRollSound = document.getElementById("drumRollSound");
+const announceSound = document.getElementById("announceSound");
+const thankYouSound = document.getElementById("thankYouSound");
 
 // ============================
 // Rules Audio
@@ -90,7 +91,7 @@ startBtn.onclick = async () => {
     results.appendChild(li);
 
     if (swings.length === 3) {
-      evaluateResult();
+      evaluateResultWithSounds();
     }
   }, 1200);
 };
@@ -129,42 +130,55 @@ function calculateDistance(acc) {
 }
 
 // ============================
-// Final Evaluation
+// Final Evaluation with DrumRoll → Announce
 // ============================
-function evaluateResult() {
-  const validSwings = swings.filter(d => d > 0);
+function evaluateResultWithSounds() {
 
-  let average = 0;
-  let penalty = 0;
-  let finalDistance = 0;
+  // ① Drum Roll
+  drumRollSound.currentTime = 0;
+  drumRollSound.play();
 
-  if (validSwings.length > 0) {
-    average = validSwings.reduce((s, d) => s + d, 0) / validSwings.length;
+  drumRollSound.onended = () => {
 
-    const variance =
-      validSwings.reduce((s, d) => s + Math.pow(d - average, 2), 0) /
-      validSwings.length;
-
-    penalty = Math.sqrt(variance) * 0.8;
-    finalDistance = Math.max(average - penalty, 0);
-  }
-
-  finalResult.innerHTML = `
-    <p>Average Distance: ${average.toFixed(1)} yd</p>
-    <p>Stability Penalty: -${penalty.toFixed(1)} yd</p>
-    <strong>Final Result: ${finalDistance.toFixed(1)} yd</strong>
-  `;
-
-  // 3 sec delay → announce → applause
-  announceSound.currentTime = 0;
-  applauseSound.currentTime = 0;
-
-  setTimeout(() => {
+    // ② Announce
+    announceSound.currentTime = 0;
     announceSound.play();
+
     announceSound.onended = () => {
-      applauseSound.play();
+
+      // ③ Calculate result
+      const validSwings = swings.filter(d => d > 0);
+
+      let average = 0;
+      let penalty = 0;
+      let finalDistance = 0;
+
+      if (validSwings.length > 0) {
+        average =
+          validSwings.reduce((s, d) => s + d, 0) / validSwings.length;
+
+        const variance =
+          validSwings.reduce(
+            (s, d) => s + Math.pow(d - average, 2),
+            0
+          ) / validSwings.length;
+
+        penalty = Math.sqrt(variance) * 0.8;
+        finalDistance = Math.max(average - penalty, 0);
+      }
+
+      // ④ Display result
+      finalResult.innerHTML = `
+        <p>Average Distance: ${average.toFixed(1)} yd</p>
+        <p>Stability Penalty: -${penalty.toFixed(1)} yd</p>
+        <strong>Final Result: ${finalDistance.toFixed(1)} yd</strong>
+      `;
+
+      // ⑤ Thank You
+      thankYouSound.currentTime = 0;
+      thankYouSound.play();
     };
-  }, 3000);
+  };
 }
 
 // ============================
@@ -175,4 +189,5 @@ resetBtn.onclick = () => {
   results.innerHTML = "";
   finalResult.innerHTML = "";
 };
+
 
