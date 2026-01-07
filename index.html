@@ -17,6 +17,7 @@
 </head>
 <body>
 
+  <!-- Title -->
   <h1>
     Golf Swing Competition<br>
     <span class="hosted-by">
@@ -25,7 +26,12 @@
     </span>
   </h1>
 
-  <img src="golfer.png" alt="Golf Swing Illustration" class="golfer-image">
+  <!-- Illustration -->
+  <img
+    src="golfer.png"
+    alt="Golf Swing Illustration"
+    class="golfer-image"
+  >
 
   <!-- Rules Audio Button -->
   <button id="rulesBtn" class="rules-btn">
@@ -43,13 +49,14 @@
   <ul id="results"></ul>
   <div id="finalResult"></div>
 
-  <!-- Audio -->
+  <!-- Audio Elements -->
   <audio id="swingSound" src="swing.mp3" preload="auto"></audio>
-  <audio id="announceSound" src="Announce.mp3" preload="auto"></audio>
-  <audio id="applauseSound" src="applause.mp3" preload="auto"></audio>
   <audio id="rulesSound" src="LetsGetStarted.mp3" preload="auto"></audio>
+  <audio id="drumRollSound" src="DrumRoll.mp3" preload="auto"></audio>
+  <audio id="announceSound" src="Announce.mp3" preload="auto"></audio>
+  <audio id="thankYouSound" src="ThankYou.mp3" preload="auto"></audio>
 
+  <!-- App Logic -->
   <script src="app.js"></script>
 </body>
 </html>
-
