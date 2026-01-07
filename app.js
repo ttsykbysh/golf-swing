@@ -54,11 +54,13 @@ rulesBtn.onclick = () => {
 startBtn.onclick = async () => {
   if (swings.length >= 3) return;
 
+  // iOS permission
   if (typeof DeviceMotionEvent?.requestPermission === "function") {
     const permission = await DeviceMotionEvent.requestPermission();
     if (permission !== "granted") return;
   }
 
+  // Reset measurement state
   peakAcceleration = 0;
   activeFrameCount = 0;
   swingDetected = false;
@@ -88,6 +90,7 @@ startBtn.onclick = async () => {
     li.textContent = swingDetected
       ? `Swing ${swings.length}: ${distance.toFixed(1)} yd`
       : `Swing ${swings.length}: No Swing (0 yd)`;
+
     results.appendChild(li);
 
     if (swings.length === 3) {
@@ -101,10 +104,15 @@ startBtn.onclick = async () => {
 // ============================
 function handleMotion(event) {
   if (!listening) return;
+
   const a = event.acceleration;
   if (!a) return;
 
-  const magnitude = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+  const magnitude = Math.sqrt(
+    a.x * a.x +
+    a.y * a.y +
+    a.z * a.z
+  );
 
   if (magnitude > peakAcceleration) {
     peakAcceleration = magnitude;
@@ -130,55 +138,62 @@ function calculateDistance(acc) {
 }
 
 // ============================
-// Final Evaluation with DrumRoll → Announce
+// Final Evaluation
+// Silent 2s → DrumRoll → Announce → Display → ThankYou
 // ============================
 function evaluateResultWithSounds() {
 
-  // ① Drum Roll
-  drumRollSound.currentTime = 0;
-  drumRollSound.play();
+  // ① 2 seconds silent before DrumRoll
+  setTimeout(() => {
 
-  drumRollSound.onended = () => {
+    // ② Drum Roll
+    drumRollSound.currentTime = 0;
+    drumRollSound.play();
 
-    // ② Announce
-    announceSound.currentTime = 0;
-    announceSound.play();
+    drumRollSound.onended = () => {
 
-    announceSound.onended = () => {
+      // ③ Announce
+      announceSound.currentTime = 0;
+      announceSound.play();
 
-      // ③ Calculate result
-      const validSwings = swings.filter(d => d > 0);
+      announceSound.onended = () => {
 
-      let average = 0;
-      let penalty = 0;
-      let finalDistance = 0;
+        // ④ Calculate result (exclude 0 yd)
+        const validSwings = swings.filter(d => d > 0);
 
-      if (validSwings.length > 0) {
-        average =
-          validSwings.reduce((s, d) => s + d, 0) / validSwings.length;
+        let average = 0;
+        let penalty = 0;
+        let finalDistance = 0;
 
-        const variance =
-          validSwings.reduce(
-            (s, d) => s + Math.pow(d - average, 2),
-            0
-          ) / validSwings.length;
+        if (validSwings.length > 0) {
+          average =
+            validSwings.reduce((s, d) => s + d, 0) /
+            validSwings.length;
 
-        penalty = Math.sqrt(variance) * 0.8;
-        finalDistance = Math.max(average - penalty, 0);
-      }
+          const variance =
+            validSwings.reduce(
+              (s, d) => s + Math.pow(d - average, 2),
+              0
+            ) / validSwings.length;
 
-      // ④ Display result
-      finalResult.innerHTML = `
-        <p>Average Distance: ${average.toFixed(1)} yd</p>
-        <p>Stability Penalty: -${penalty.toFixed(1)} yd</p>
-        <strong>Final Result: ${finalDistance.toFixed(1)} yd</strong>
-      `;
+          penalty = Math.sqrt(variance) * 0.8;
+          finalDistance = Math.max(average - penalty, 0);
+        }
 
-      // ⑤ Thank You
-      thankYouSound.currentTime = 0;
-      thankYouSound.play();
+        // ⑤ Display result
+        finalResult.innerHTML = `
+          <p>Average Distance: ${average.toFixed(1)} yd</p>
+          <p>Stability Penalty: -${penalty.toFixed(1)} yd</p>
+          <strong>Final Result: ${finalDistance.toFixed(1)} yd</strong>
+        `;
+
+        // ⑥ Thank You
+        thankYouSound.currentTime = 0;
+        thankYouSound.play();
+      };
     };
-  };
+
+  }, 2000);
 }
 
 // ============================
