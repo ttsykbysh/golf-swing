@@ -94,10 +94,12 @@ startBtn.onclick = async () => {
 
   window.addEventListener("devicemotion", handleMotion);
 
+  // Swing sound after 2s
   setTimeout(() => {
     playSound(swingSound);
   }, 2000);
 
+  // Measurement window
   setTimeout(() => {
     listening = false;
     window.removeEventListener("devicemotion", handleMotion);
@@ -127,12 +129,15 @@ startBtn.onclick = async () => {
 // ============================
 function handleMotion(event) {
   if (!listening) return;
+
   const a = event.acceleration;
   if (!a) return;
 
-  const magnitude = Math.sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+  const magnitude = Math.sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
 
-  if (magnitude > peakAcceleration) peakAcceleration = magnitude;
+  if (magnitude > peakAcceleration) {
+    peakAcceleration = magnitude;
+  }
 
   if (magnitude >= MIN_SWING_THRESHOLD) {
     activeFrameCount++;
@@ -153,39 +158,65 @@ function calculateDistance(acc) {
 }
 
 // ============================
-// Final Evaluation
+// Final Evaluation (Silent-safe)
 // ============================
 function evaluateResultWithSounds() {
 
+  // 2s silent wait before DrumRoll
   setTimeout(() => {
-    playSound(drumRollSound);
 
-    drumRollSound.onended = () => {
-      playSound(announceSound);
+    if (silentMode) {
+      // Silent Mode: time-based flow
+      setTimeout(() => {
+        showFinalResult();
+      }, 4000); // DrumRoll + Announce equivalent
 
-      announceSound.onended = () => {
+    } else {
+      // Normal Mode: sound-driven flow
+      playSound(drumRollSound);
 
-        const valid = swings.filter(d => d > 0);
-        let avg = 0, penalty = 0, finalD = 0;
+      drumRollSound.onended = () => {
+        playSound(announceSound);
 
-        if (valid.length > 0) {
-          avg = valid.reduce((s, d) => s + d, 0) / valid.length;
-          const variance =
-            valid.reduce((s, d) => s + Math.pow(d - avg, 2), 0) / valid.length;
-          penalty = Math.sqrt(variance) * 0.8;
-          finalD = Math.max(avg - penalty, 0);
-        }
-
-        finalResult.innerHTML = `
-          <p>Average Distance: ${avg.toFixed(1)} yd</p>
-          <p>Stability Penalty: -${penalty.toFixed(1)} yd</p>
-          <strong>Final Result: ${finalD.toFixed(1)} yd</strong>
-        `;
-
-        playSound(thankYouSound);
+        announceSound.onended = () => {
+          showFinalResult();
+        };
       };
-    };
+    }
+
   }, 2000);
+}
+
+// ============================
+// Show Final Result
+// ============================
+function showFinalResult() {
+
+  const valid = swings.filter(d => d > 0);
+
+  let avg = 0;
+  let penalty = 0;
+  let finalD = 0;
+
+  if (valid.length > 0) {
+    avg = valid.reduce((s, d) => s + d, 0) / valid.length;
+
+    const variance =
+      valid.reduce((s, d) => s + Math.pow(d - avg, 2), 0) / valid.length;
+
+    penalty = Math.sqrt(variance) * 0.8;
+    finalD = Math.max(avg - penalty, 0);
+  }
+
+  finalResult.innerHTML = `
+    <p>Average Distance: ${avg.toFixed(1)} yd</p>
+    <p>Stability Penalty: -${penalty.toFixed(1)} yd</p>
+    <strong>Final Result: ${finalD.toFixed(1)} yd</strong>
+  `;
+
+  if (!silentMode) {
+    playSound(thankYouSound);
+  }
 }
 
 // ============================
@@ -193,7 +224,7 @@ function evaluateResultWithSounds() {
 // ============================
 resetBtn.onclick = () => {
 
-  // Silent Mode解除
+  // Force Silent Mode OFF on reset
   if (silentMode) {
     silentMode = false;
     silentBtn.classList.remove("active");
