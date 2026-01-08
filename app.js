@@ -37,6 +37,7 @@ const results = document.getElementById("results");
 const finalResult = document.getElementById("finalResult");
 
 const swingSound = document.getElementById("swingSound");
+const whiffSound = document.getElementById("whiffSound");
 const rulesSound = document.getElementById("rulesSound");
 const drumRollSound = document.getElementById("drumRollSound");
 const announceSound = document.getElementById("announceSound");
@@ -94,11 +95,6 @@ startBtn.onclick = async () => {
 
   window.addEventListener("devicemotion", handleMotion);
 
-  // Swing sound after 2s
-  setTimeout(() => {
-    playSound(swingSound);
-  }, 2000);
-
   // Measurement window
   setTimeout(() => {
     listening = false;
@@ -107,6 +103,15 @@ startBtn.onclick = async () => {
     let distance = 0;
     if (swingDetected) {
       distance = calculateDistance(peakAcceleration);
+    }
+
+    // Play swing / whiff sound
+    if (!silentMode) {
+      if (swingDetected) {
+        playSound(swingSound);
+      } else {
+        playSound(whiffSound);
+      }
     }
 
     swings.push(distance);
@@ -166,21 +171,13 @@ function evaluateResultWithSounds() {
   setTimeout(() => {
 
     if (silentMode) {
-      // Silent Mode: time-based flow
-      setTimeout(() => {
-        showFinalResult();
-      }, 4000); // DrumRoll + Announce equivalent
-
+      setTimeout(showFinalResult, 4000);
     } else {
-      // Normal Mode: sound-driven flow
       playSound(drumRollSound);
 
       drumRollSound.onended = () => {
         playSound(announceSound);
-
-        announceSound.onended = () => {
-          showFinalResult();
-        };
+        announceSound.onended = showFinalResult;
       };
     }
 
@@ -193,7 +190,6 @@ function evaluateResultWithSounds() {
 function showFinalResult() {
 
   const valid = swings.filter(d => d > 0);
-
   let avg = 0;
   let penalty = 0;
   let finalD = 0;
@@ -224,7 +220,6 @@ function showFinalResult() {
 // ============================
 resetBtn.onclick = () => {
 
-  // Force Silent Mode OFF on reset
   if (silentMode) {
     silentMode = false;
     silentBtn.classList.remove("active");
@@ -236,5 +231,3 @@ resetBtn.onclick = () => {
   results.innerHTML = "";
   finalResult.innerHTML = "";
 };
-
-
